@@ -1,0 +1,45 @@
+/* .transaction-history-container {
+    padding: 20px;
+    max-width: 800px;
+    margin: auto;
+  } */
+  
+  .transaction-history-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+  }
+  
+  .transaction-history-table th,
+  .transaction-history-table td {
+    border: 1px solid #ddd;
+    padding: 12px;
+    text-align: left;
+  }
+  
+  .transaction-history-table th {
+    background-color: #4caf50; /* Green background */
+    color: white;
+  }
+  
+  .transaction-history-table tr:nth-child(even) {
+    background-color: #f2f2f2; /* Light gray background for even rows */
+  }
+  
+  .transaction-history-table tr:hover {
+    background-color: #ddd; /* Gray background on hover */
+  }
+  
+  .transaction-history-table .deposit {
+    background-color: #e1f5fe; /* Light blue for deposits */
+  }
+  
+  .transaction-history-table .withdrawal {
+    background-color: #ffccbc; /* Light red for withdrawals */
+  }
+  
+  @media (max-width: 768px) {
+    .transaction-history-table {
+      font-size: 14px; /* Smaller font on smaller screens */
+    }
+  }
