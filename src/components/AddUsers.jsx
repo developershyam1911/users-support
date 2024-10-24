@@ -19,6 +19,7 @@ const AddUsers = () => {
     mobno: "",
     amount: "",
     role: "user",
+    acviteUser: 0,
     status: "active", // default to active
   });
 
@@ -32,28 +33,27 @@ const AddUsers = () => {
     e.preventDefault();
     const { name, email, password, mobno, status } = data;
 
-    // Ensure mandatory fields are filled
     if (name !== "" && email !== "" && password !== "") {
       try {
-        // Register the user with Firebase Authentication
         const userCredential = await createUserWithEmailAndPassword(
-          init.auth, // Assuming auth is initialized in firebase.js
+          init.auth,
           email,
           password
         );
         const user = userCredential.user;
-
-        // Save user details in Firestore
-        await addDoc(collection(init.db, "users"), {
-          name,
-          email,
-          mobno: mobno || null, // Optional
+        const userDocRef = doc(init.db, "users", user.uid);
+        await setDoc(userDocRef, {
+          name: name,
+          email: email,
+          password: password,
+          mobno: mobno || "N/A",
           amount: 0,
+          acviteUser: 0,
           status,
           role: "user",
           createdAt: serverTimestamp(),
+          auth_uid: user.uid,
         });
-
         setData({
           name: "",
           email: "",
@@ -61,7 +61,7 @@ const AddUsers = () => {
           mobno: "",
           status: "active",
         });
-        toast.success("User registered successfully.");
+        toast.success("User Registered Successfully.");
       } catch (err) {
         console.log("Error: " + err);
         toast.error("Failed to register user.");

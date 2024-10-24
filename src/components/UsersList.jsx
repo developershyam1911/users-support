@@ -1,9 +1,14 @@
 import React, { useState, useEffect } from "react";
-import { getDocs, collection, deleteDoc, doc } from "firebase/firestore";
+import {
+  getDocs,
+  collection,
+  deleteDoc,
+  doc,
+  updateDoc,
+} from "firebase/firestore";
 import init from "../firebase"; // Ensure Firebase is initialized properly
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import AddAmount from "./AddAmount";
 import { Link } from "react-router-dom";
 import { MdDelete } from "react-icons/md";
 import dayjs from "dayjs";
@@ -11,6 +16,7 @@ import dayjs from "dayjs";
 const UsersList = () => {
   const [users, setUsers] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
+
   const fetchUsers = async () => {
     try {
       const usersCollection = collection(init.db, "users");
@@ -25,9 +31,8 @@ const UsersList = () => {
       toast.error("Failed to fetch users.");
     }
   };
-  useEffect(() => {
-    // Function to fetch users from Firestore
 
+  useEffect(() => {
     fetchUsers();
   }, []);
 
@@ -35,19 +40,48 @@ const UsersList = () => {
   const filteredUsers = users.filter((user) =>
     user.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
-  const deletebtnHandler = async (user_id) => {
-    const choice = window.confirm("Are you sure want to delete?");
+
+  const deletebtnHandler = async (user_id, authId) => {
+    const choice = window.confirm("Are you sure you want to delete this user?");
     if (choice) {
       try {
+        const user = await init.auth.getUser(authId);
+
+        // Delete the user from Firebase Authentication
+        await deleteUser(user);
+
+        // Now delete the user from Firestore
         await deleteDoc(doc(init.db, "users", user_id));
+
+        // Refresh the user list
         fetchUsers();
-      } catch (err) {
-        console.log(err);
+        toast.success("User deleted successfully.");
+      } catch (error) {
+        console.error("Error deleting user: ", error);
+        toast.error("Failed to delete user.");
       }
-    } else {
-      return;
     }
   };
+
+  const updateActiveUserHandler = async (user_id, currentActiveUser) => {
+    const newActiveUser = prompt(
+      "Enter the number of active users:",
+      currentActiveUser
+    );
+
+    if (newActiveUser !== null) {
+      try {
+        const userDoc = doc(init.db, "users", user_id);
+        await updateDoc(userDoc, { activeUser: Number(newActiveUser) });
+        toast.success("Active user count updated successfully.");
+        fetchUsers(); // Fetch updated data
+      } catch (error) {
+        console.log("Error updating active user count: ", error);
+        toast.error("Failed to update active user count.");
+      }
+    }
+  };
+
   return (
     <div className="page-wrapper">
       <div className="container-fluid">
@@ -56,7 +90,6 @@ const UsersList = () => {
             <div className="card shadow-sm">
               <div className="card-header">
                 <center>
-                  {" "}
                   <h2 className="mb-2">Users List</h2>
                 </center>
                 <div className="mb-2">
@@ -72,7 +105,7 @@ const UsersList = () => {
               <div className="card-body">
                 <div className="table-responsive">
                   <table className="table table-bordered">
-                    <thead className="bg-secondary  text-white">
+                    <thead className="bg-secondary text-white">
                       <tr>
                         <th className="text-white">S. No</th>
                         <th className="text-white">Name</th>
@@ -82,6 +115,7 @@ const UsersList = () => {
                         <th className="text-white">Deposit</th>
                         <th className="text-white">Withdraw</th>
                         <th className="text-white">Status</th>
+                        <th className="text-white">Active Users</th>
                         <th className="text-white">CreatedAt</th>
                         <th className="text-white">Action</th>
                       </tr>
@@ -96,26 +130,34 @@ const UsersList = () => {
                             <td>{user.mobno || "N/A"}</td>
                             <td>{user.amount}</td>
                             <td>
-                              {
-                                <Link to={`/dashboard/user/${user.id}`}>
-                                  <div className="btn-sm btn-success btn text-white">
-                                    Deposit
-                                  </div>
-                                </Link>
-                              }
+                              <Link to={`/dashboard/user/${user.id}`}>
+                                <div className="btn-sm btn-success btn text-white">
+                                  Deposit
+                                </div>
+                              </Link>
                             </td>
                             <td>
-                              {
-                                <Link
-                                  to={`/dashboard/user/${user.id}/withdraw`}
-                                >
-                                  <div className="btn-sm btn-danger btn text-white">
-                                    Withdraw
-                                  </div>
-                                </Link>
-                              }
+                              <Link to={`/dashboard/user/${user.id}/withdraw`}>
+                                <div className="btn-sm btn-danger btn text-white">
+                                  Withdraw
+                                </div>
+                              </Link>
                             </td>
                             <td>{user.status}</td>
+                            <td>
+                              {user.activeUser || 0}
+                              <button
+                                className="btn btn-sm btn-primary ml-2"
+                                onClick={() =>
+                                  updateActiveUserHandler(
+                                    user.id,
+                                    user.activeUser || 0
+                                  )
+                                }
+                              >
+                                Update
+                              </button>
+                            </td>
                             <td>
                               {dayjs(user.createdAt.seconds * 1000).format(
                                 "MMM D, YYYY h:mm A"
@@ -126,7 +168,9 @@ const UsersList = () => {
                                 <MdDelete
                                   size={24}
                                   style={{ color: "red" }}
-                                  onClick={() => deletebtnHandler(user.id)}
+                                  onClick={() =>
+                                    deletebtnHandler(user.id, user.authId)
+                                  }
                                 />
                               </button>
                             </td>
@@ -134,7 +178,7 @@ const UsersList = () => {
                         ))
                       ) : (
                         <tr>
-                          <td colSpan="5" className="text-center">
+                          <td colSpan="11" className="text-center">
                             No users found
                           </td>
                         </tr>

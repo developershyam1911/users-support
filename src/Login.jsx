@@ -35,14 +35,13 @@ const Login = () => {
       try {
         const user = await signInWithEmailAndPassword(auth, email, password);
         const document_id = user.user.uid;
-        // const res = await getDoc(doc(init.db, 'content_writter', document_id))
-
-        // const response = res.data()
-        if (document_id) {
+        const res = await getDoc(doc(init.db, "admins", document_id));
+        const response = res.data();
+        if (response) {
           toast.success("successfully logged in");
           navigate("/dashboard/dash_board");
         } else {
-          toast.error("something went wrong");
+          toast.error("User is not admin");
         }
       } catch (error) {
         toast.error(error.message);
@@ -53,7 +52,6 @@ const Login = () => {
       }
     }
   };
-
   return (
     <>
       <div
