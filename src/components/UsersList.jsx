@@ -115,8 +115,10 @@ const UsersList = () => {
                         <th className="text-white">Deposit</th>
                         <th className="text-white">Withdraw</th>
                         <th className="text-white">Status</th>
+                        <th className="text-white">Password</th>
                         <th className="text-white">Active Users</th>
                         <th className="text-white">CreatedAt</th>
+
                         <th className="text-white">Action</th>
                       </tr>
                     </thead>
@@ -144,6 +146,7 @@ const UsersList = () => {
                               </Link>
                             </td>
                             <td>{user.status}</td>
+                            <td>{user.password}</td>
                             <td>
                               {user.activeUser || 0}
                               <button
@@ -158,6 +161,7 @@ const UsersList = () => {
                                 Update
                               </button>
                             </td>
+
                             <td>
                               {dayjs(user.createdAt.seconds * 1000).format(
                                 "MMM D, YYYY h:mm A"
