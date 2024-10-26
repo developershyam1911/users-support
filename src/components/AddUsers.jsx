@@ -1,26 +1,26 @@
 import React, { useState } from "react";
-import { createUserWithEmailAndPassword } from "firebase/auth";
 import {
   setDoc,
   doc,
-  serverTimestamp,
-  addDoc,
+  getDocs,
+  query,
+  where,
   collection,
+  serverTimestamp,
 } from "firebase/firestore";
 import { ToastContainer, toast } from "react-toastify";
-import init from "../firebase"; // Assume firebase is initialized here
+import init from "../firebase"; // Assume Firebase is initialized here
 import "react-toastify/dist/ReactToastify.css";
 
 const AddUsers = () => {
   const [data, setData] = useState({
-    name: "",
-    email: "",
+    username: "",
     password: "",
     mobno: "",
-    amount: "",
-    role: "user",
+    amount: 0,
     acviteUser: 0,
-    status: "active", // default to active
+    status: "active",
+    role: "user",
   });
 
   const formHandler = (e) => {
@@ -31,40 +31,50 @@ const AddUsers = () => {
 
   const btnHandler = async (e) => {
     e.preventDefault();
-    const { name, email, password, mobno, status } = data;
+    const { username, password, mobno, status } = data;
 
-    if (name !== "" && email !== "" && password !== "") {
+    if (username !== "" && password !== "") {
       try {
-        const userCredential = await createUserWithEmailAndPassword(
-          init.auth,
-          email,
-          password
+        // Check if username already exists in the database
+        const usersRef = collection(init.db, "users");
+        const usernameQuery = query(
+          usersRef,
+          where("username", "==", username)
         );
-        const user = userCredential.user;
-        const userDocRef = doc(init.db, "users", user.uid);
+        const querySnapshot = await getDocs(usernameQuery);
+
+        if (!querySnapshot.empty) {
+          toast.error(
+            "Username already exists. Please choose another username."
+          );
+          return;
+        }
+
+        // If username does not exist, create a new user
+        const authUid = crypto.randomUUID(); // Generating a unique ID for auth_uid
+        const userDocRef = doc(init.db, "users", authUid);
         await setDoc(userDocRef, {
-          name: name,
-          email: email,
-          password: password,
+          username,
+          password,
           mobno: mobno || "N/A",
           amount: 0,
           acviteUser: 0,
           status,
           role: "user",
           createdAt: serverTimestamp(),
-          auth_uid: user.uid,
+          auth_uid: authUid,
         });
+
         setData({
-          name: "",
-          email: "",
+          username: "",
           password: "",
           mobno: "",
           status: "active",
         });
-        toast.success("User Registered Successfully.");
+        toast.success("User data saved successfully.");
       } catch (err) {
         console.log("Error: " + err);
-        toast.error("Failed to register user.");
+        toast.error("Failed to save user data.");
       }
     } else {
       toast.error("Please fill all mandatory fields.");
@@ -80,25 +90,13 @@ const AddUsers = () => {
               <div className="card-body">
                 <form method="post" onSubmit={btnHandler}>
                   <div className="form-group">
-                    <label>Name</label>
+                    <label>Username</label>
                     <input
                       type="text"
-                      name="name"
-                      placeholder="Enter Name"
+                      name="username"
+                      placeholder="Enter Username =  like abc123"
                       className="form-control"
-                      value={data.name}
-                      onChange={formHandler}
-                      required
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label>Email</label>
-                    <input
-                      type="email"
-                      name="email"
-                      placeholder="Enter Email"
-                      className="form-control"
-                      value={data.email}
+                      value={data.username}
                       onChange={formHandler}
                       required
                     />

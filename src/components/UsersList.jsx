@@ -38,22 +38,14 @@ const UsersList = () => {
 
   // Filter users based on search term
   const filteredUsers = users.filter((user) =>
-    user.name.toLowerCase().includes(searchTerm.toLowerCase())
+    user.username.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const deletebtnHandler = async (user_id, authId) => {
+  const deletebtnHandler = async (user_id) => {
     const choice = window.confirm("Are you sure you want to delete this user?");
     if (choice) {
       try {
-        const user = await init.auth.getUser(authId);
-
-        // Delete the user from Firebase Authentication
-        await deleteUser(user);
-
-        // Now delete the user from Firestore
         await deleteDoc(doc(init.db, "users", user_id));
-
-        // Refresh the user list
         fetchUsers();
         toast.success("User deleted successfully.");
       } catch (error) {
@@ -108,8 +100,7 @@ const UsersList = () => {
                     <thead className="bg-secondary text-white">
                       <tr>
                         <th className="text-white">S. No</th>
-                        <th className="text-white">Name</th>
-                        <th className="text-white">Email</th>
+                        <th className="text-white">UserName</th>
                         <th className="text-white">Mobile Number</th>
                         <th className="text-white">Amount</th>
                         <th className="text-white">Deposit</th>
@@ -127,8 +118,7 @@ const UsersList = () => {
                         filteredUsers.map((user, index) => (
                           <tr key={user.id}>
                             <td>{index + 1}</td>
-                            <td>{user.name}</td>
-                            <td>{user.email}</td>
+                            <td>{user.username}</td>
                             <td>{user.mobno || "N/A"}</td>
                             <td>{user.amount}</td>
                             <td>
@@ -172,9 +162,7 @@ const UsersList = () => {
                                 <MdDelete
                                   size={24}
                                   style={{ color: "red" }}
-                                  onClick={() =>
-                                    deletebtnHandler(user.id, user.authId)
-                                  }
+                                  onClick={() => deletebtnHandler(user.id)}
                                 />
                               </button>
                             </td>

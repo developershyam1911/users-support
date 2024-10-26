@@ -68,7 +68,7 @@ const BusinessAnalysis = () => {
 
   // Filter users based on search term
   const filteredUsers = users.filter((user) =>
-    user.name.toLowerCase().includes(searchTerm.toLowerCase())
+    user.username.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -132,7 +132,6 @@ const BusinessAnalysis = () => {
                               <tr>
                                 <th className="text-white">S.</th>
                                 <th className="text-white">Name</th>
-                                <th className="text-white">Email</th>
                                 <th className="text-white">Mobile Number</th>
                                 <th className="text-white">Amount</th>
                                 <th className="text-white">Deposit</th>
@@ -145,8 +144,7 @@ const BusinessAnalysis = () => {
                                 filteredUsers.map((user, index) => (
                                   <tr key={user.id}>
                                     <td>{index + 1}</td>
-                                    <td>{user.name}</td>
-                                    <td>{user.email}</td>
+                                    <td>{user.username}</td>
                                     <td>{user.mobno || "N/A"}</td>
                                     <td>{user.amount}</td>
                                     <td>
